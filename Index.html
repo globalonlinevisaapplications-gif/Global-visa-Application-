@@ -1,0 +1,432 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Online Visa Applications</title>
+  <meta name="description" content="Apply for visas online and track your application.">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #17243a;
+    }
+    header {
+      background: #102b50;
+      color: white;
+      padding: 18px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header h2 { margin: 0; font-size: 20px; }
+    nav { display: flex; gap: 12px; flex-wrap: wrap; }
+    button {
+      background: #087eaf;
+      color: white;
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button.secondary { background: #52657d; }
+    button:hover { opacity: .9; }
+    .hero {
+      background: linear-gradient(120deg, #102b50, #087eaf);
+      color: white;
+      text-align: center;
+      padding: 65px 20px;
+    }
+    .hero h1 { font-size: 36px; margin: 0 0 15px; }
+    .hero p { max-width: 650px; margin: auto; line-height: 1.7; }
+    main { max-width: 950px; margin: 30px auto; padding: 0 16px; }
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 15px #142b4510;
+    }
+    .card h2 { margin-top: 0; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+    label { display: block; margin: 14px 0 6px; font-weight: bold; }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccd5df;
+      border-radius: 6px;
+      font-size: 15px;
+      background: white;
+    }
+    .hidden { display: none; }
+    .message { margin-top: 14px; padding: 12px; border-radius: 6px; }
+    .error { background: #feecec; color: #a32222; }
+    .success { background: #e7f7ed; color: #176b38; }
+    .muted { color: #64748b; line-height: 1.6; }
+    footer {
+      background: #102b50;
+      color: white;
+      text-align: center;
+      padding: 25px;
+      margin-top: 40px;
+    }
+    @media(max-width: 600px) {
+      .hero h1 { font-size: 28px; }
+      header { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Global Visa Applications</h2>
+  <nav>
+    <button onclick="showSection('home')">Home</button>
+    <button onclick="showSection('login')">Sign in</button>
+    <button onclick="showSection('register')">Register</button>
+  </nav>
+</header>
+
+<section id="home" class="hero">
+  <h1>Your Global Travel Journey Starts Here</h1>
+  <p>Access visa application services, submit your details and supporting documents, and follow your application progress online.</p>
+  <br>
+  <button onclick="showSection('register')">Create an account</button>
+  <button class="secondary" onclick="showSection('login')">Applicant sign in</button>
+</section>
+
+<main>
+  <section id="login" class="card hidden">
+    <h2>Applicant Sign In</h2>
+    <form id="loginForm">
+      <label>Email address</label>
+      <input id="loginEmail" type="email" required>
+      <label>Password</label>
+      <input id="loginPassword" type="password" required>
+      <br><br>
+      <button type="submit">Sign in</button>
+    </form>
+    <div id="loginMessage"></div>
+  </section>
+
+  <section id="register" class="card hidden">
+    <h2>Create Applicant Account</h2>
+    <form id="registerForm">
+      <label>Email address</label>
+      <input id="registerEmail" type="email" required>
+      <label>Password</label>
+      <input id="registerPassword" type="password" minlength="8" required>
+      <br><br>
+      <button type="submit">Create account</button>
+    </form>
+    <div id="registerMessage"></div>
+    <p class="muted">If email confirmation is enabled, check your inbox to confirm your account before signing in.</p>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="card">
+      <h2>Applicant Portal</h2>
+      <p id="welcomeMessage" class="muted"></p>
+      <button onclick="loadApplications()">Refresh my applications</button>
+      <button class="secondary" onclick="signOut()">Sign out</button>
+    </div>
+
+    <div class="card">
+      <h2>Start a Visa Application</h2>
+      <form id="applicationForm">
+        <div class="grid">
+          <div>
+            <label>First name</label>
+            <input id="firstName" required>
+          </div>
+          <div>
+            <label>Last name</label>
+            <input id="lastName" required>
+          </div>
+          <div>
+            <label>Phone number</label>
+            <input id="phone">
+          </div>
+          <div>
+            <label>Nationality</label>
+            <input id="nationality">
+          </div>
+          <div>
+            <label>Passport number</label>
+            <input id="passportNumber">
+          </div>
+          <div>
+            <label>Date of birth</label>
+            <input id="dateOfBirth" type="date">
+          </div>
+        </div>
+
+        <label>Destination country</label>
+        <select id="preferredCountry" required>
+          <option value="">Choose a destination</option>
+          <option>United Kingdom</option>
+          <option>United States</option>
+          <option>Canada</option>
+          <option>Australia</option>
+          <option>Germany</option>
+          <option>France</option>
+          <option>United Arab Emirates</option>
+          <option>South Africa</option>
+          <option>Other</option>
+        </select>
+
+        <label>Visa type</label>
+        <select id="visaType" required>
+          <option value="">Loading visa types...</option>
+        </select>
+
+        <br><br>
+        <button type="submit">Submit application</button>
+      </form>
+      <div id="applicationMessage"></div>
+    </div>
+
+    <div class="card">
+      <h2>My Applications</h2>
+      <div id="applicationsList" class="muted">Sign in to view your applications.</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Global Online Visa Applications</p>
+  <p>Visa application information and online services.</p>
+</footer>
+
+<script>
+  // Add your Supabase project URL and anon/publishable key here.
+  const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_OR_PUBLISHABLE_KEY";
+
+  let db = null;
+  let currentUser = null;
+
+  if (window.supabase &&
+      !SUPABASE_URL.startsWith("YOUR_") &&
+      !SUPABASE_ANON_KEY.startsWith("YOUR_")) {
+    db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+  }
+
+  function showSection(section) {
+    document.getElementById("home").classList.toggle("hidden", section !== "home");
+    document.getElementById("login").classList.toggle("hidden", section !== "login");
+    document.getElementById("register").classList.toggle("hidden", section !== "register");
+    document.getElementById("dashboard").classList.toggle("hidden", section !== "dashboard");
+  }
+
+  function showMessage(id, message, success = false) {
+    const element = document.getElementById(id);
+    element.className = "message " + (success ? "success" : "error");
+    element.textContent = message;
+  }
+
+  function requireSupabase() {
+    if (!db) {
+      alert("The website still needs your Supabase project URL and public anon/publishable key.");
+      return false;
+    }
+    return true;
+  }
+
+  document.getElementById("registerForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!requireSupabase()) return;
+
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value;
+
+    const { error } = await db.auth.signUp({ email, password });
+
+    if (error) {
+      showMessage("registerMessage", error.message);
+    } else {
+      showMessage("registerMessage",
+        "Account created. Check your email if confirmation is required.",
+        true
+      );
+    }
+  });
+
+  document.getElementById("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!requireSupabase()) return;
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      showMessage("loginMessage", error.message);
+      return;
+    }
+
+    currentUser = data.user;
+    await openDashboard();
+  });
+
+  async function openDashboard() {
+    showSection("dashboard");
+    document.getElementById("welcomeMessage").textContent =
+      "Signed in as " + currentUser.email;
+
+    await loadVisaTypes();
+    await loadApplications();
+  }
+
+  async function loadVisaTypes() {
+    const select = document.getElementById("visaType");
+    select.innerHTML = '<option value="">Choose a visa type</option>';
+
+    const { data, error } = await db
+      .from("visa_types")
+      .select("id, visa_name, visa_fee");
+
+    if (error) {
+      select.innerHTML = '<option value="">Visa types unavailable</option>';
+      return;
+    }
+
+    (data || []).forEach(type => {
+      const option = document.createElement("option");
+      option.value = type.id;
+      option.textContent = type.visa_name +
+        (type.visa_fee != null ? " - " + type.visa_fee : "");
+      select.appendChild(option);
+    });
+  }
+
+  document.getElementById("applicationForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!requireSupabase() || !currentUser) return;
+
+    const payload = {
+      first_name: document.getElementById("firstName").value.trim(),
+      last_name: document.getElementById("lastName").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      nationality: document.getElementById("nationality").value.trim(),
+      passport_number: document.getElementById("passportNumber").value.trim(),
+      date_of_birth: document.getElementById("dateOfBirth").value || null,
+      preferred_country: document.getElementById("preferredCountry").value,
+      visa_type_id: document.getElementById("visaType").value
+    };
+
+    if (!payload.visa_type_id || !payload.preferred_country) {
+      showMessage("applicationMessage", "Choose a destination and visa type.");
+      return;
+    }
+
+    const { data, error } = await db.functions.invoke(
+      "submit-visa-application",
+      { body: payload }
+    );
+
+    if (error || !data?.success) {
+      showMessage("applicationMessage",
+        data?.error || error?.message || "Application submission failed.");
+      return;
+    }
+
+    showMessage("applicationMessage",
+      "Application submitted. Reference: " + data.application_id,
+      true
+    );
+
+    document.getElementById("applicationForm").reset();
+    await loadApplications();
+  });
+
+  async function loadApplications() {
+    if (!currentUser) return;
+
+    const list = document.getElementById("applicationsList");
+    list.textContent = "Loading applications...";
+
+    const { data: applicant, error: applicantError } = await db
+      .from("applicants")
+      .select("id")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (applicantError) {
+      list.textContent = "Could not load your applicant record.";
+      return;
+    }
+
+    if (!applicant) {
+      list.textContent = "You have not submitted an application yet.";
+      return;
+    }
+
+    const { data, error } = await db
+      .from("visa_applications")
+      .select("id, status, application_date, preferred_country")
+      .eq("applicant_id", applicant.id)
+      .order("application_date", { ascending: false });
+
+    if (error) {
+      list.textContent = "Could not load applications.";
+      return;
+    }
+
+    list.replaceChildren();
+
+    if (!data || data.length === 0) {
+      list.textContent = "You have not submitted an application yet.";
+      return;
+    }
+
+    data.forEach(app => {
+      const item = document.createElement("div");
+      item.className = "card";
+      const heading = document.createElement("strong");
+      heading.textContent = app.preferred_country || "Visa application";
+      const status = document.createElement("p");
+      status.textContent = "Status: " + (app.status || "Pending");
+      const reference = document.createElement("p");
+      reference.textContent = "Reference: " + app.id;
+      item.append(heading, status, reference);
+      list.appendChild(item);
+    });
+  }
+
+  async function signOut() {
+    if (!db) return;
+    await db.auth.signOut();
+    currentUser = null;
+    showSection("home");
+  }
+
+  async function restoreSession() {
+    if (!db) return;
+
+    const { data } = await db.auth.getSession();
+    if (data.session) {
+      currentUser = data.session.user;
+      await openDashboard();
+    }
+  }
+
+  restoreSession();
+</script>
+</body>
+</html>
